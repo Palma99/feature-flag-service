@@ -1,0 +1,1 @@
+ALTER TABLE environment ADD UNIQUE(project_id, name);
