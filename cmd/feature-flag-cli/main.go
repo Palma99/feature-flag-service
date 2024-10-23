@@ -33,6 +33,11 @@ func init() {
 func main() {
 
 	keyService := services.NewKeyService()
+	passwordService := services.NewPasswordService()
+
+	userRepository := infrastructure.NewPgUserRepository(db)
+	userInteractor := usecase.NewUserInteractor(userRepository, passwordService)
+	userController := interfaces.NewUserController(userInteractor)
 
 	environmentRepository := infrastructure.NewPgEnvironmentRepository(db)
 	environmentInteractor := usecase.NewEnvironmentInteractor(environmentRepository, keyService)
@@ -64,11 +69,43 @@ func main() {
 			if err := handleUpdateFlagValue(cmd, flagController); err != nil {
 				fmt.Println(err)
 			}
+		case "create-user":
+			if err := handleCreateUser(cmd, userController); err != nil {
+				fmt.Println(err)
+			}
 		default:
 			fmt.Println("Unknown command")
 		}
 
 	}
+}
+
+func handleCreateUser(cmd string, uc *interfaces.UserController) error {
+	email, nickname, password := "", "", ""
+
+	var re = regexp.MustCompile(`(?m)(--email|--nickname|--password)\s+([\w|@|.]+)`)
+
+	for _, match := range re.FindAllString(cmd, -1) {
+		if strings.Index(match, "--email") == 0 {
+			email = strings.Split(match, " ")[1]
+		} else if strings.Index(match, "--nickname") == 0 {
+			nickname = strings.Split(match, " ")[1]
+		} else if strings.Index(match, "--password") == 0 {
+			password = strings.Split(match, " ")[1]
+		}
+	}
+
+	if email == "" || nickname == "" || password == "" {
+		return errors.New("please specify an email, a nickname and a password")
+	}
+
+	userDTO := usecase.CreateUserDTO{
+		Email:    email,
+		Nickname: nickname,
+		Password: password,
+	}
+
+	return uc.CreateUser(userDTO)
 }
 
 func handleUpdateFlagValue(cmd string, fc *interfaces.FlagController) error {

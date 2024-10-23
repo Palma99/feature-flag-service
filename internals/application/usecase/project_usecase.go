@@ -23,27 +23,6 @@ func NewProjectInteractor(
 	}
 }
 
-func (i *ProjectInteractor) CreateEnvironment(envName string) error {
-	// secret, err := i.keyService.GenerateSecretKey()
-	// if err != nil {
-	// 	return errors.New("error during creation of environment")
-	// }
-
-	// pk, err := i.keyService.GeneratePublicKey()
-	// if err != nil {
-	// 	return errors.New("error during creation of environment")
-	// }
-
-	// environment := &entity.Environment{
-	// 	Name:       "My environment",
-	// 	PublicKey:  pk,
-	// 	PrivateKey: secret,
-	// 	ProjectID:  1,
-	// }
-
-	return nil
-}
-
 func (i *ProjectInteractor) CreateProject(name string, privateKey string) (*entity.Environment, error) {
 	if i.keyService.IsPublicKey(privateKey) {
 		return nil, errors.New("unauthorized")

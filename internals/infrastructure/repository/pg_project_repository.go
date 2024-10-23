@@ -65,3 +65,28 @@ func (r *PgProjectRepository) CreateProject(project *entity.Project) error {
 
 	return nil
 }
+
+func (r *PgProjectRepository) GetProjectsByUserId(userId int) ([]entity.Project, error) {
+	projectRows, err := r.db.Query(`
+		SELECT 
+			id, name FROM project as p
+			left join user_project up on up.project_id = p.id
+			where up.user_id = $1
+		`, userId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	projects := []entity.Project{}
+
+	for projectRows.Next() {
+		project := entity.Project{}
+		if err := projectRows.Scan(&project.ID, &project.Name); err != nil {
+			return nil, err
+		}
+		projects = append(projects, project)
+	}
+
+	return projects, nil
+}

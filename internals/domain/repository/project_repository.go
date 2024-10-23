@@ -6,4 +6,5 @@ import (
 
 type ProjectRepository interface {
 	CreateProject(project *entity.Project) error
+	GetProjectsByUserId(userId int) ([]entity.Project, error)
 }
