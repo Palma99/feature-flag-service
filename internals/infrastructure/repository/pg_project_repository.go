@@ -2,7 +2,6 @@ package infrastructure
 
 import (
 	"database/sql"
-	"fmt"
 
 	entity "github.com/Palma99/feature-flag-service/internals/domain/entity"
 	domain "github.com/Palma99/feature-flag-service/internals/domain/repository"
@@ -63,8 +62,6 @@ func (r *PgProjectRepository) CreateProject(project *domain.CreateProjectDTO) (*
 	}
 	defer tx.Rollback()
 
-	fmt.Println("Creating project...", project)
-
 	createProjectQuery := `
 		INSERT INTO project (name, owner_id) VALUES ($1, $2) RETURNING id
 	`
@@ -104,10 +101,9 @@ func (r *PgProjectRepository) CreateProject(project *domain.CreateProjectDTO) (*
 
 func (r *PgProjectRepository) GetProjectsByUserId(userId int) ([]entity.Project, error) {
 	projectRows, err := r.db.Query(`
-		SELECT 
-			id, name FROM project as p
-			left join user_project up on up.project_id = p.id
-			where up.user_id = $1
+		SELECT p.id, p.name, p.owner_id FROM project AS p
+			LEFT JOIN users_project up ON up.project_id = p.id
+			WHERE up.user_id = $1
 		`, userId)
 
 	if err != nil {
@@ -118,7 +114,7 @@ func (r *PgProjectRepository) GetProjectsByUserId(userId int) ([]entity.Project,
 
 	for projectRows.Next() {
 		project := entity.Project{}
-		if err := projectRows.Scan(&project.ID, &project.Name); err != nil {
+		if err := projectRows.Scan(&project.ID, &project.Name, &project.OwnerId); err != nil {
 			return nil, err
 		}
 		projects = append(projects, project)

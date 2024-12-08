@@ -11,6 +11,6 @@ type ProjectRepository interface {
 }
 
 type CreateProjectDTO struct {
-	Name    string
+	Name    string `json:"projectName"`
 	OwnerId int
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Palma99/feature-flag-service/internals/application/services"
+	entity "github.com/Palma99/feature-flag-service/internals/domain/entity"
 	repository "github.com/Palma99/feature-flag-service/internals/domain/repository"
 )
 
@@ -23,11 +24,15 @@ func NewProjectInteractor(
 	}
 }
 
-func (i *ProjectInteractor) CreateProject(name string, userId int) error {
+func (i *ProjectInteractor) CreateProject(name string, userId int) (*int64, error) {
 
 	_, err := i.keyService.GeneratePublicKey()
 	if err != nil {
-		return errors.New("error during creation of project")
+		return nil, errors.New("error during creation of project")
+	}
+
+	if name == "" {
+		return nil, errors.New("error during creation of project, name is required")
 	}
 
 	project := &repository.CreateProjectDTO{
@@ -35,11 +40,15 @@ func (i *ProjectInteractor) CreateProject(name string, userId int) error {
 		OwnerId: userId,
 	}
 
-	_, err = i.projectRepository.CreateProject(project)
+	created, err := i.projectRepository.CreateProject(project)
 	if err != nil {
 		fmt.Println(err)
-		return errors.New("error during creation of project")
+		return nil, errors.New("error during creation of project")
 	}
 
-	return nil
+	return &created.ID, nil
+}
+
+func (i *ProjectInteractor) GetProjectsByUserId(userId int) ([]entity.Project, error) {
+	return i.projectRepository.GetProjectsByUserId(userId)
 }

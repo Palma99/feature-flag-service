@@ -1,8 +1,6 @@
 package services
 
 import (
-	"fmt"
-
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -51,8 +49,6 @@ func (js JWTService) ValidateToken(token string) (*Payload, error) {
 	if claims, ok := tokenClaims.Claims.(jwt.MapClaims); ok && tokenClaims.Valid {
 		userID := int(claims["userID"].(float64))
 		p := &Payload{UserID: userID}
-
-		fmt.Println(p)
 		return p, nil
 	}
 

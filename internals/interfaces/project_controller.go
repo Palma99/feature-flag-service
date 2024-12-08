@@ -13,5 +13,6 @@ func NewProjectController(projectInteractor *usecase.ProjectInteractor) *Project
 }
 
 func (projectController *ProjectController) CreateProject(name string, userId int) error {
-	return projectController.projectInteractor.CreateProject(name, userId)
+	_, err := projectController.projectInteractor.CreateProject(name, userId)
+	return err
 }
