@@ -2,9 +2,9 @@ package usecase
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/Palma99/feature-flag-service/internals/application/services"
-	entity "github.com/Palma99/feature-flag-service/internals/domain/entity"
 	repository "github.com/Palma99/feature-flag-service/internals/domain/repository"
 )
 
@@ -23,10 +23,23 @@ func NewProjectInteractor(
 	}
 }
 
-func (i *ProjectInteractor) CreateProject(name string, privateKey string) (*entity.Environment, error) {
-	if i.keyService.IsPublicKey(privateKey) {
-		return nil, errors.New("unauthorized")
+func (i *ProjectInteractor) CreateProject(name string, userId int) error {
+
+	_, err := i.keyService.GeneratePublicKey()
+	if err != nil {
+		return errors.New("error during creation of project")
 	}
 
-	return nil, errors.New("not implemented")
+	project := &repository.CreateProjectDTO{
+		Name:    name,
+		OwnerId: userId,
+	}
+
+	_, err = i.projectRepository.CreateProject(project)
+	if err != nil {
+		fmt.Println(err)
+		return errors.New("error during creation of project")
+	}
+
+	return nil
 }

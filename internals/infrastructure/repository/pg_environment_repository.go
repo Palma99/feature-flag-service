@@ -36,8 +36,8 @@ func (r *PgEnvironmentRepository) GetEnvironmentByPublicKey(key string) (*entity
 
 func (r *PgEnvironmentRepository) CreateEnvironment(env *entity.Environment) error {
 	_, err := r.db.Exec(`
-		INSERT INTO environment (name, public_key, private_key, project_id) VALUES ($1, $2, $3, $4)
-	`, env.Name, env.PublicKey, env.PrivateKey, env.ProjectID)
+		INSERT INTO environment (name, public_key, project_id) VALUES ($1, $2, $3)
+	`, env.Name, env.PublicKey, env.ProjectID)
 
 	if err != nil {
 		return err

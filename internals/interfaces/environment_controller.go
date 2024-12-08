@@ -14,6 +14,6 @@ func NewEnvironmentInteractor(environmentInteractor *usecase.EnvironmentInteract
 	}
 }
 
-func (ec *EnvironmentController) CreateEnvironment(name, projectId string) error {
-	return ec.environmentInteractor.CreateEnvironment(name, projectId)
+func (ec *EnvironmentController) CreateEnvironment(name string, projectId int64, userId int) error {
+	return ec.environmentInteractor.CreateEnvironment(name, projectId, userId)
 }

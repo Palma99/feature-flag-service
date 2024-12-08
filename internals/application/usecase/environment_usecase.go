@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/Palma99/feature-flag-service/internals/application/services"
 	entity "github.com/Palma99/feature-flag-service/internals/domain/entity"
@@ -10,28 +11,26 @@ import (
 
 type EnvironmentInteractor struct {
 	environmentRepository repository.EnvironmentRepository
+	projectRepository     repository.ProjectRepository
 	keyService            *services.KeyService
 }
 
 func NewEnvironmentInteractor(
 	environmentRepository repository.EnvironmentRepository,
+	projectRepository repository.ProjectRepository,
 	keyService *services.KeyService,
 ) *EnvironmentInteractor {
 	return &EnvironmentInteractor{
 		environmentRepository,
+		projectRepository,
 		keyService,
 	}
 }
 
-func (i *EnvironmentInteractor) CreateEnvironment(envName string, projectId string) error {
+func (i *EnvironmentInteractor) CreateEnvironment(envName string, projectId int64, userId int) error {
 
-	if (envName == "") || (projectId == "") {
+	if (envName == "") || (projectId == 0) {
 		return errors.New("error during creation of environment, name and project id are required")
-	}
-
-	secret, err := i.keyService.GenerateSecretKey()
-	if err != nil {
-		return errors.New("error during creation of environment")
 	}
 
 	pk, err := i.keyService.GeneratePublicKey()
@@ -39,15 +38,33 @@ func (i *EnvironmentInteractor) CreateEnvironment(envName string, projectId stri
 		return errors.New("error during creation of environment")
 	}
 
+	loggedUser := &entity.LoggedUser{
+		ID: userId,
+	}
+
+	project, err := i.projectRepository.GetUserProjectByProjectId(userId, projectId)
+	if err != nil {
+		fmt.Println(err)
+		return errors.New("error during creation of environment")
+	}
+
+	if !loggedUser.CanCreateProjectEnvironment(*project) {
+		return errors.New("user is not allowed to create this environment")
+	}
+
 	environment := &entity.Environment{
-		Name:       envName,
-		PublicKey:  pk,
-		PrivateKey: secret,
-		ProjectID:  projectId,
+		Name:      envName,
+		PublicKey: pk,
+		ProjectID: projectId,
+	}
+
+	if err := project.CanCreateEnvironment(*environment); err != nil {
+		return err
 	}
 
 	err = i.environmentRepository.CreateEnvironment(environment)
 	if err != nil {
+		fmt.Println(err)
 		return errors.New("error during creation of environment")
 	}
 

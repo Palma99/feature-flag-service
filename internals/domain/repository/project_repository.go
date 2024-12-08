@@ -5,6 +5,12 @@ import (
 )
 
 type ProjectRepository interface {
-	CreateProject(project *entity.Project) error
+	CreateProject(project *CreateProjectDTO) (*entity.Project, error)
 	GetProjectsByUserId(userId int) ([]entity.Project, error)
+	GetUserProjectByProjectId(userId int, projectId int64) (*entity.Project, error)
+}
+
+type CreateProjectDTO struct {
+	Name    string
+	OwnerId int
 }

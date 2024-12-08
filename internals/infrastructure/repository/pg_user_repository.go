@@ -34,7 +34,7 @@ func (r *PgUserRepository) GetUserByEmail(email string) (*entity.User, error) {
 			id,
 			nickname,
 			email,
-			"password"
+			password
 		FROM users 
 		WHERE email = $1
 	`, email)

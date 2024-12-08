@@ -4,8 +4,10 @@ import "golang.org/x/crypto/bcrypt"
 
 type PasswordService struct{}
 
-func (ps PasswordService) CompareHashAndPassword(rawPassword string, hashedPassword string) bool {
-	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(rawPassword)) != nil
+func (ps PasswordService) ArePasswordsEqual(rawPassword string, hashedPassword string) bool {
+	result := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(rawPassword))
+
+	return result == nil
 }
 
 func (ps PasswordService) HashPassword(rawPassword string) (string, error) {
@@ -13,6 +15,6 @@ func (ps PasswordService) HashPassword(rawPassword string) (string, error) {
 	return string(hashedPassword), err
 }
 
-func NewPasswordService() PasswordService {
-	return PasswordService{}
+func NewPasswordService() *PasswordService {
+	return &PasswordService{}
 }
