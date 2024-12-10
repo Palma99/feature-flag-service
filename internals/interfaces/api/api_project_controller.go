@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/Palma99/feature-flag-service/internals/application/usecase"
 	domain "github.com/Palma99/feature-flag-service/internals/domain/repository"
 	context_keys "github.com/Palma99/feature-flag-service/internals/infrastructure/context"
+	"github.com/go-chi/chi/v5"
 )
 
 type ApiProjectController struct {
@@ -64,4 +66,27 @@ func (projectController *ApiProjectController) GetProjects(w http.ResponseWriter
 	}
 
 	json.NewEncoder(w).Encode(jsonResponse)
+}
+
+func (projectController *ApiProjectController) GetProject(w http.ResponseWriter, r *http.Request) {
+	userId := r.Context().Value(context_keys.UserIDKey).(int)
+	projectId, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+	}
+
+	project, err := projectController.projectInteractor.GetProjectDetails(userId, projectId)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	jsonResponse := map[string]interface{}{
+		"project": project,
+	}
+
+	json.NewEncoder(w).Encode(jsonResponse)
+	w.WriteHeader(http.StatusOK)
 }

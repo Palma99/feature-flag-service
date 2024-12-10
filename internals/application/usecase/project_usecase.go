@@ -52,3 +52,19 @@ func (i *ProjectInteractor) CreateProject(name string, userId int) (*int64, erro
 func (i *ProjectInteractor) GetProjectsByUserId(userId int) ([]entity.Project, error) {
 	return i.projectRepository.GetProjectsByUserId(userId)
 }
+
+func (i *ProjectInteractor) GetProjectDetails(userId int, projectId int64) (*entity.ProjectWithMembers, error) {
+	projectWithMembers, err := i.projectRepository.GetProjectDetails(projectId)
+	if err != nil || !projectWithMembers.HasMember(userId) {
+		fmt.Println(err)
+		return nil, errors.New("project not found")
+	}
+
+	project, err := i.projectRepository.GetProjectDetails(projectId)
+	if err != nil {
+		fmt.Println(err)
+		return nil, errors.New("project not found")
+	}
+
+	return project, nil
+}

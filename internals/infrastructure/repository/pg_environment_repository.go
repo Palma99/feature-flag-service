@@ -2,6 +2,7 @@ package infrastructure
 
 import (
 	"database/sql"
+	"encoding/json"
 
 	entity "github.com/Palma99/feature-flag-service/internals/domain/entity"
 )
@@ -46,9 +47,62 @@ func (r *PgEnvironmentRepository) CreateEnvironment(env *entity.Environment) err
 	return nil
 }
 
-func (r *PgEnvironmentRepository) GetEnvironmentByName(name string) (*entity.Environment, error) {
+func (r *PgEnvironmentRepository) GetEnvironmentDetails(environmentId int64) (*entity.EnvironmentWithFlags, error) {
 
-	return nil, nil
+	row := r.db.QueryRow(`
+		SELECT 
+			e.ID AS EnvironmentID,
+			e.Name AS EnvironmentName,
+			e.project_id ,
+			e.public_key,
+			COALESCE(
+				JSON_AGG(
+					JSON_BUILD_OBJECT(
+						'id', f.ID,
+						'name', f.Name,
+            'project_id', f.project_id,
+						'enabled', COALESCE(fe.Enabled, FALSE)
+					)
+				) FILTER (WHERE f.ID IS NOT NULL),
+				'[]' -- Array vuoto se non ci sono flag
+			) AS Flags
+		FROM 
+				Environment e
+		LEFT JOIN 
+				Flag_Environment fe ON e.ID = fe.environment 
+		LEFT JOIN 
+				Flag f ON f.ID = fe.flag
+		WHERE 
+				e.ID = $1
+		GROUP BY 
+				e.ID, e.Name, e.project_id ;
+	`, environmentId)
+
+	var envId int
+	var envName string
+	var projectId int64
+	var publicKey string
+	var flagsJSON string
+
+	if err := row.Scan(&envId, &envName, &projectId, &publicKey, &flagsJSON); err != nil {
+		return nil, err
+	}
+
+	env := &entity.EnvironmentWithFlags{
+		Environment: entity.Environment{
+			ID:        envId,
+			Name:      envName,
+			PublicKey: publicKey,
+			ProjectID: projectId,
+		},
+		Flags: []entity.Flag{},
+	}
+
+	if err := json.Unmarshal([]byte(flagsJSON), &env.Flags); err != nil {
+		return nil, err
+	}
+
+	return env, nil
 }
 
 func (r *PgEnvironmentRepository) GetEnvironmentBySecretKey(key string) (*entity.Environment, error) {

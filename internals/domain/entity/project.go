@@ -29,3 +29,12 @@ type ProjectWithMembers struct {
 	Project
 	Members []User `json:"members"`
 }
+
+func (pm *ProjectWithMembers) HasMember(userId int) bool {
+	for _, member := range pm.Members {
+		if member.ID == userId {
+			return true
+		}
+	}
+	return false
+}

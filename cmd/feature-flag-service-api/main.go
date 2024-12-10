@@ -61,12 +61,13 @@ func main() {
 	projectInteractor := usecase.NewProjectInteractor(projectRepository, keyService)
 	projectController := interfaces.NewApiProjectController(projectInteractor)
 
-	// environmentRepository := infrastructure.NewPgEnvironmentRepository(db)
-	// environmentInteractor := usecase.NewEnvironmentInteractor(environmentRepository, projectRepository, keyService)
-	// environmentController := interfaces.NewEnvironmentInteractor(environmentInteractor)
+	environmentRepository := infrastructure.NewPgEnvironmentRepository(db)
+	environmentInteractor := usecase.NewEnvironmentInteractor(environmentRepository, projectRepository, keyService)
+	environmentController := interfaces.NewApiEnvironmentController(environmentInteractor)
 
-	// flagRepository := infrastructure.NewPgFlagRepository(db)
-	// flagInteractor := usecase.NewFlagInteractor(flagRepository, environmentRepository, keyService)
+	flagRepository := infrastructure.NewPgFlagRepository(db)
+	flagInteractor := usecase.NewFlagInteractor(flagRepository, environmentRepository, keyService, projectRepository)
+	flagController := interfaces.NewApiFlagController(flagInteractor)
 
 	r := chi.NewRouter()
 	r.Use(cors.Handler(cors.Options{
@@ -122,7 +123,62 @@ func main() {
 		})
 
 		r.Post("/", projectController.CreateProject)
+		r.Get("/{id}", projectController.GetProject)
 		r.Get("/list", projectController.GetProjects)
+	})
+
+	r.Route("/environment", func(r chi.Router) {
+		r.Use(func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				// get token from auth header
+				bearerToken := r.Header.Get("Authorization")
+				parts := strings.Split(bearerToken, " ")
+				if len(parts) != 2 || parts[0] != "Bearer" {
+					w.WriteHeader(http.StatusUnauthorized)
+					return
+				}
+				token := parts[1]
+
+				// validate token
+				if payload, err := jwtService.ValidateToken(token); err != nil {
+					w.WriteHeader(http.StatusUnauthorized)
+					return
+				} else {
+
+					ctx := context.WithValue(r.Context(), context_keys.UserIDKey, payload.UserID)
+					next.ServeHTTP(w, r.WithContext(ctx))
+				}
+			})
+		})
+
+		r.Get("/{id}", environmentController.GetEnvironment)
+	})
+
+	r.Route("/flag", func(r chi.Router) {
+		r.Use(func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				// get token from auth header
+				bearerToken := r.Header.Get("Authorization")
+				parts := strings.Split(bearerToken, " ")
+				if len(parts) != 2 || parts[0] != "Bearer" {
+					w.WriteHeader(http.StatusUnauthorized)
+					return
+				}
+				token := parts[1]
+
+				// validate token
+				if payload, err := jwtService.ValidateToken(token); err != nil {
+					w.WriteHeader(http.StatusUnauthorized)
+					return
+				} else {
+
+					ctx := context.WithValue(r.Context(), context_keys.UserIDKey, payload.UserID)
+					next.ServeHTTP(w, r.WithContext(ctx))
+				}
+			})
+		})
+
+		r.Post("/", flagController.CreateFlag)
 	})
 
 	http.ListenAndServe(":3000", r)

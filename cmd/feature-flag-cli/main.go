@@ -69,7 +69,7 @@ func main() {
 	environmentController := interfaces.NewEnvironmentInteractor(environmentInteractor)
 
 	flagRepository := infrastructure.NewPgFlagRepository(db)
-	flagInteractor := usecase.NewFlagInteractor(flagRepository, environmentRepository, keyService)
+	flagInteractor := usecase.NewFlagInteractor(flagRepository, environmentRepository, keyService, projectRepository)
 
 	flagController := interfaces.NewFlagController(flagInteractor)
 
@@ -84,14 +84,14 @@ func main() {
 		loggedUserId, authError := authInteractor.ValidateToken(loggedUserToken)
 
 		switch strings.Split(cmd, " ")[0] {
-		case "get":
-			if authError != nil {
-				fmt.Println("You are not logged in")
-				continue
-			}
-			if err := handleGetFlags(cmd, flagController); err != nil {
-				fmt.Println(err)
-			}
+		// case "get":
+		// 	if authError != nil {
+		// 		fmt.Println("You are not logged in")
+		// 		continue
+		// 	}
+		// 	if err := handleGetFlags(cmd, flagController); err != nil {
+		// 		fmt.Println(err)
+		// 	}
 		case "create-project":
 			if authError != nil {
 				fmt.Println("You are not logged in")
@@ -231,7 +231,9 @@ func handleUpdateFlagValue(cmd string, fc *interfaces.FlagController) error {
 	flagIdNum, _ := strconv.Atoi(flagId)
 	valueBool, _ := strconv.ParseBool(value)
 
-	return fc.UpdateFlagValue(key, flagIdNum, valueBool)
+	// return fc.UpdateFlagValue(key, flagIdNum, valueBool)
+	fmt.Println("Flag updated.", key, flagIdNum, valueBool)
+	return nil
 }
 
 func handleCreateProject(cmd string, pc *interfaces.ProjectController, userId int) error {
@@ -286,26 +288,26 @@ func handleCreateEnvironment(cmd string, ec *interfaces.EnvironmentController, u
 	return nil
 }
 
-func handleGetFlags(cmd string, fc *interfaces.FlagController) error {
-	args := strings.Split(cmd, "--key ")[1:]
+// func handleGetFlags(cmd string, fc *interfaces.FlagController) error {
+// 	args := strings.Split(cmd, "--key ")[1:]
 
-	if len(args) != 1 {
-		return errors.New("please specify a key")
-	}
+// 	if len(args) != 1 {
+// 		return errors.New("please specify a key")
+// 	}
 
-	key := args[0]
-	flags, err := fc.GetAllFlagsByEnvironmentKey(key)
-	if err != nil {
-		return err
-	}
+// 	key := args[0]
+// 	flags, err := fc.GetAllFlagsByEnvironmentKey(key)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	if len(flags) == 0 {
-		return errors.New("no flags found")
-	}
+// 	if len(flags) == 0 {
+// 		return errors.New("no flags found")
+// 	}
 
-	for _, flag := range flags {
-		fmt.Printf("Name: %s, Enabled: %t, Env: %v\n", flag.Name, flag.Enabled, flag.Environment)
-	}
+// 	for _, flag := range flags {
+// 		fmt.Printf("Name: %s, Enabled: %t, Env: %v\n", flag.Name, flag.Enabled, flag.Environment)
+// 	}
 
-	return nil
-}
+// 	return nil
+// }

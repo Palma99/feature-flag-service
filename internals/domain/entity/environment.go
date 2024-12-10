@@ -5,5 +5,9 @@ type Environment struct {
 	Name      string `json:"name"`
 	ProjectID int64  `json:"project_id"`
 	PublicKey string `json:"public_key"`
-	Flags     []Flag `json:"flags"`
+}
+
+type EnvironmentWithFlags struct {
+	Environment
+	Flags []Flag `json:"flags"`
 }

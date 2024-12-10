@@ -78,3 +78,21 @@ func (i *EnvironmentInteractor) GetEnvironmentByKey(key string) (*entity.Environ
 
 	return i.environmentRepository.GetEnvironmentByPublicKey(key)
 }
+
+func (i *EnvironmentInteractor) GetEnvironmentDetails(userId int, environmentId int64) (*entity.EnvironmentWithFlags, error) {
+
+	environmentDetails, err := i.environmentRepository.GetEnvironmentDetails(environmentId)
+	if err != nil {
+		fmt.Println(err)
+		return nil, errors.New("environment not found")
+	}
+
+	userProjectRelationId, err := i.projectRepository.GetUserProjectRelation(userId, environmentDetails.ProjectID)
+
+	if err != nil || userProjectRelationId == nil {
+		fmt.Println(err)
+		return nil, errors.New("project not found")
+	}
+
+	return environmentDetails, nil
+}

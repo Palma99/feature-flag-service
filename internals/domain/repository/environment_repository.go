@@ -6,4 +6,5 @@ type EnvironmentRepository interface {
 	GetEnvironmentByPublicKey(publicKey string) (*entity.Environment, error)
 	GetEnvironmentBySecretKey(secretKey string) (*entity.Environment, error)
 	CreateEnvironment(env *entity.Environment) error
+	GetEnvironmentDetails(id int64) (*entity.EnvironmentWithFlags, error)
 }
