@@ -47,6 +47,30 @@ func (r *PgEnvironmentRepository) CreateEnvironment(env *entity.Environment) err
 	return nil
 }
 
+func (r *PgEnvironmentRepository) getProjectFlags(projectId int64) ([]entity.Flag, error) {
+	rows, err := r.db.Query(`
+		SELECT id, name, project_id FROM flag WHERE project_id = $1
+	`, projectId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var flags []entity.Flag
+
+	for rows.Next() {
+		flag := entity.Flag{
+			Enabled: false,
+		}
+		if err := rows.Scan(&flag.ID, &flag.Name, &flag.ProjectID); err != nil {
+			return nil, err
+		}
+		flags = append(flags, flag)
+	}
+
+	return flags, nil
+}
+
 func (r *PgEnvironmentRepository) GetEnvironmentDetails(environmentId int64) (*entity.EnvironmentWithFlags, error) {
 
 	row := r.db.QueryRow(`
@@ -100,6 +124,25 @@ func (r *PgEnvironmentRepository) GetEnvironmentDetails(environmentId int64) (*e
 
 	if err := json.Unmarshal([]byte(flagsJSON), &env.Flags); err != nil {
 		return nil, err
+	}
+
+	// merge with project flags
+	projectFlags, err := r.getProjectFlags(projectId)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, projectFlag := range projectFlags {
+		flagHasConfigurationInEnvironment := false
+		for _, envFlag := range env.Flags {
+			if envFlag.ID == projectFlag.ID {
+				flagHasConfigurationInEnvironment = true
+				break
+			}
+		}
+		if !flagHasConfigurationInEnvironment {
+			env.Flags = append(env.Flags, projectFlag)
+		}
 	}
 
 	return env, nil
