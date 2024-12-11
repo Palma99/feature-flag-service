@@ -52,6 +52,19 @@ func (i *FlagInteractor) CreateFlag(projectId int64, userId int, flagName string
 	return nil
 }
 
+func (i *FlagInteractor) UpdateFlagEnvironment(environmentId, userId int, flagsToUpdate []domain.Flag) error {
+	projectDetails, err := i.projectRepository.GetProjectDetailsByEnvironmentId(environmentId)
+	if err != nil || !projectDetails.HasMember(userId) {
+		return errors.New("user is not allowed to update this flag")
+	}
+
+	if err := i.flagRepository.UpdateFlagEnvironment(environmentId, flagsToUpdate); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // func (i *FlagInteractor) UpdateFlagValue(key string, flagId int, value bool) error {
 // 	if i.keyService.IsPublicKey(key) {
 // 		return errors.New("unauthorized")

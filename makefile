@@ -26,3 +26,7 @@ migrate:
 .PHONY: cli
 cli:
 	@go run cmd/feature-flag-cli/main.go
+
+.PHONY: api
+api:
+	@go run cmd/feature-flag-service-api/main.go

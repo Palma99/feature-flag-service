@@ -180,6 +180,7 @@ func main() {
 		})
 
 		r.Post("/", flagController.CreateFlag)
+		r.Put("/environment/{id}", flagController.UpdateFlagEnvironment)
 	})
 
 	fmt.Println("Server started on http://localhost:3000")

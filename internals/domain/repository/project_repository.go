@@ -9,6 +9,7 @@ type ProjectRepository interface {
 	GetProjectsByUserId(userId int) ([]entity.Project, error)
 	GetUserProjectRelation(userId int, projectId int64) (*int64, error)
 	GetProjectDetails(projectId int64) (*entity.ProjectWithMembers, error)
+	GetProjectDetailsByEnvironmentId(environmentId int) (*entity.ProjectWithMembers, error)
 }
 
 type CreateProjectDTO struct {
