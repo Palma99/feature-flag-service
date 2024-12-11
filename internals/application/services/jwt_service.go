@@ -5,7 +5,8 @@ import (
 )
 
 type Payload struct {
-	UserID int
+	UserID   int
+	Nickname string
 }
 
 type JWTService struct {
@@ -22,13 +23,15 @@ func NewJWTService(secret string) *JWTService {
 	}
 }
 
-func (js JWTService) GenerateToken(userID int) (string, error) {
+func (js JWTService) GenerateToken(userID int, nickname string) (string, error) {
 	payload := &Payload{
-		UserID: userID,
+		UserID:   userID,
+		Nickname: nickname,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"userID": payload.UserID,
+		"userID":   payload.UserID,
+		"nickname": payload.Nickname,
 	})
 
 	tokenString, err := token.SignedString([]byte(js.secret))
@@ -48,7 +51,7 @@ func (js JWTService) ValidateToken(token string) (*Payload, error) {
 
 	if claims, ok := tokenClaims.Claims.(jwt.MapClaims); ok && tokenClaims.Valid {
 		userID := int(claims["userID"].(float64))
-		p := &Payload{UserID: userID}
+		p := &Payload{UserID: userID, Nickname: claims["nickname"].(string)}
 		return p, nil
 	}
 

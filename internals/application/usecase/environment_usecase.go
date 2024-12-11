@@ -42,14 +42,14 @@ func (i *EnvironmentInteractor) CreateEnvironment(envName string, projectId int6
 		ID: userId,
 	}
 
-	project, err := i.projectRepository.GetUserProjectByProjectId(userId, projectId)
+	project, err := i.projectRepository.GetProjectDetails(projectId)
 	if err != nil {
 		fmt.Println(err)
 		return errors.New("error during creation of environment")
 	}
 
 	if !loggedUser.CanCreateProjectEnvironment(*project) {
-		return errors.New("user is not allowed to create this environment")
+		return errors.New("user does not have permission to create environment in this project")
 	}
 
 	environment := &entity.Environment{

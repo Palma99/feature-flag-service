@@ -13,6 +13,6 @@ type LoggedUser struct {
 	Nickname string `json:"nickname"`
 }
 
-func (lu LoggedUser) CanCreateProjectEnvironment(project Project) bool {
+func (lu LoggedUser) CanCreateProjectEnvironment(project ProjectWithMembers) bool {
 	return lu.ID == project.OwnerId
 }

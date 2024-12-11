@@ -69,7 +69,7 @@ func (u *AuthInteractor) GetToken(userLoginDTO UserLoginDTO) (*string, error) {
 		return nil, errors.New("invalid credentials")
 	}
 
-	token, err := u.jwtService.GenerateToken(user.ID)
+	token, err := u.jwtService.GenerateToken(user.ID, user.Nickname)
 
 	if err != nil {
 		return nil, err

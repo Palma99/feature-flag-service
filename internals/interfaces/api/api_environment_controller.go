@@ -43,3 +43,30 @@ func (environmentController *ApiEnvironmentController) GetEnvironment(w http.Res
 	json.NewEncoder(w).Encode(jsonResponse)
 	w.WriteHeader(http.StatusOK)
 }
+
+type CreateEnvironmentDTO struct {
+	Name      string `json:"name"`
+	ProjectId int64  `json:"projectId"`
+}
+
+func (environmentController *ApiEnvironmentController) CreateEnvironment(w http.ResponseWriter, r *http.Request) {
+	userId := r.Context().Value(context_keys.UserIDKey).(int)
+
+	var dto CreateEnvironmentDTO
+	err := json.NewDecoder(r.Body).Decode(&dto)
+	if err != nil {
+		fmt.Print(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err = environmentController.environmentInteractor.CreateEnvironment(dto.Name, dto.ProjectId, userId)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+}

@@ -152,6 +152,7 @@ func main() {
 		})
 
 		r.Get("/{id}", environmentController.GetEnvironment)
+		r.Post("/", environmentController.CreateEnvironment)
 	})
 
 	r.Route("/flag", func(r chi.Router) {
@@ -181,5 +182,6 @@ func main() {
 		r.Post("/", flagController.CreateFlag)
 	})
 
+	fmt.Println("Server started on http://localhost:3000")
 	http.ListenAndServe(":3000", r)
 }
