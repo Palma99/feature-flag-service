@@ -18,7 +18,8 @@ CREATE TABLE IF NOT EXISTS environment (
 
 CREATE TABLE IF NOT EXISTS flag (
   id SERIAL PRIMARY KEY,
-  name VARCHAR(100) NOT NULL
+  name VARCHAR(100) NOT NULL,
+  project_id INT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS flag_environment (
@@ -26,8 +27,9 @@ CREATE TABLE IF NOT EXISTS flag_environment (
   environment INT NOT NULL,
   flag INT NOT NULL,
   enabled BOOLEAN NOT NULL DEFAULT FALSE,
-  CONSTRAINT fk_environment FOREIGN KEY (environment) REFERENCES environment(id),
-  CONSTRAINT fk_flag FOREIGN KEY (flag) REFERENCES flag(id)
+  CONSTRAINT fk_environment FOREIGN KEY (environment) REFERENCES environment(id) ON DELETE CASCADE,
+  CONSTRAINT fk_flag FOREIGN KEY (flag) REFERENCES flag(id) ON DELETE CASCADE,
+  CONSTRAINT unique_flag_environment UNIQUE (flag, environment)
 );
 
 CREATE TABLE IF NOT EXISTS users (

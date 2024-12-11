@@ -1,1 +1,0 @@
-ALTER TABLE flag_environment ADD CONSTRAINT unique_flag_environment UNIQUE (flag, environment);

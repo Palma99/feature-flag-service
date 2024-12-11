@@ -65,44 +65,16 @@ func (i *FlagInteractor) UpdateFlagEnvironment(environmentId, userId int, flagsT
 	return nil
 }
 
-// func (i *FlagInteractor) UpdateFlagValue(key string, flagId int, value bool) error {
-// 	if i.keyService.IsPublicKey(key) {
-// 		return errors.New("unauthorized")
-// 	}
+func (i *FlagInteractor) GetProjectFlags(userId int, projectId int64) ([]domain.FlagWithoutEnabled, error) {
+	projectWithMembers, err := i.projectRepository.GetProjectDetails(projectId)
+	if err != nil || !projectWithMembers.HasMember(userId) {
+		return nil, errors.New("not allowed")
+	}
 
-// 	env, err := i.environmentRepository.GetEnvironmentBySecretKey(key)
-// 	if err != nil {
-// 		fmt.Println("cannot fetch environment by secret key")
-// 		return err
-// 	}
+	flags, err := i.flagRepository.GetProjectFlags(projectId)
+	if err != nil {
+		return nil, err
+	}
 
-// 	flag, err := i.flagRepository.GetFlagInEnvironmentById(env.ID, flagId)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	updatedFlag := flag.UpdateEnabled(value)
-
-// 	if err := i.flagRepository.UpdateEnvironmentFlagValue(env.ID, updatedFlag); err != nil {
-// 		return err
-// 	}
-
-// 	return nil
-// }
-
-// func (i *FlagInteractor) GetAllFlagsByEnvironmentKey(key string) ([]entity.Flag, error) {
-// 	if !i.keyService.IsPublicKey(key) {
-// 		return nil, errors.New("secret key is not supported yet")
-// 	}
-
-// 	env, err := i.environmentRepository.GetEnvironmentByPublicKey(key)
-// 	if err != nil {
-// 		return nil, errors.New("error while fetching flags")
-// 	}
-
-// 	if flags, err := i.flagRepository.GetAllFlagsByEnvironmentID(env.ID); err != nil {
-// 		return nil, errors.New("error while fetching flags")
-// 	} else {
-// 		return flags, nil
-// 	}
-// }
+	return flags, nil
+}

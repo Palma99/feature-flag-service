@@ -181,6 +181,7 @@ func main() {
 
 		r.Post("/", flagController.CreateFlag)
 		r.Put("/environment/{id}", flagController.UpdateFlagEnvironment)
+		r.Get("/project/{id}", flagController.GetProjectFlags)
 	})
 
 	fmt.Println("Server started on http://localhost:3000")

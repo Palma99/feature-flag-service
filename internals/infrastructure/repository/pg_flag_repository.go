@@ -16,6 +16,24 @@ func NewPgFlagRepository(db *sql.DB) *PgFlagRepository {
 	}
 }
 
+func (r *PgFlagRepository) GetProjectFlags(projectId int64) ([]domain.FlagWithoutEnabled, error) {
+	rows, err := r.db.Query(`SELECT id, name, project_id FROM flag WHERE project_id = $1`, projectId)
+	if err != nil {
+		return nil, err
+	}
+
+	flags := []domain.FlagWithoutEnabled{}
+	for rows.Next() {
+		var flag domain.FlagWithoutEnabled
+		if err := rows.Scan(&flag.ID, &flag.Name, &flag.ProjectID); err != nil {
+			return nil, err
+		}
+		flags = append(flags, flag)
+	}
+
+	return flags, nil
+}
+
 func (r *PgFlagRepository) UpdateFlagEnvironment(environmentId int, flagsToUpdate []domain.Flag) error {
 	tx, err := r.db.Begin()
 	if err != nil {

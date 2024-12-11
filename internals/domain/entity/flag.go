@@ -7,6 +7,12 @@ type Flag struct {
 	ProjectID int64  `json:"project_id"`
 }
 
+type FlagWithoutEnabled struct {
+	ID        int    `json:"id"`
+	Name      string `json:"name"`
+	ProjectID int64  `json:"project_id"`
+}
+
 func (f *Flag) UpdateEnabled(enabled bool) *Flag {
 	return &Flag{
 		ID:        f.ID,

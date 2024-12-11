@@ -27,6 +27,29 @@ type CreateFlagDTO struct {
 	ProjectId int64  `json:"projectId"`
 }
 
+func (flagController *ApiFlagController) GetProjectFlags(w http.ResponseWriter, r *http.Request) {
+	userId := r.Context().Value(context_keys.UserIDKey).(int)
+	projectId, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+	}
+
+	flags, err := flagController.flagInteractor.GetProjectFlags(userId, projectId)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	jsonResponse := map[string]interface{}{
+		"projectFlags": flags,
+	}
+
+	json.NewEncoder(w).Encode(jsonResponse)
+	w.WriteHeader(http.StatusOK)
+}
+
 func (flagController *ApiFlagController) UpdateFlagEnvironment(w http.ResponseWriter, r *http.Request) {
 	userId := r.Context().Value(context_keys.UserIDKey).(int)
 	environmentId, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
