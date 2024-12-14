@@ -17,30 +17,6 @@ func NewPgEnvironmentRepository(db *sql.DB) *PgEnvironmentRepository {
 	}
 }
 
-func (r *PgEnvironmentRepository) GetEnvironmentActiveFlagsByPublicKey(key string) ([]string, error) {
-	activeFlagsRows, err := r.db.Query(`
-		select f."name" from environment e 
-		left join flag_environment fe on e.id = fe.environment
-		left join flag f on fe.flag = f.id
-		where e.public_key = $1 and fe.enabled = true;
-	`, key)
-
-	if err != nil {
-		return nil, err
-	}
-
-	var activeFlags []string = []string{}
-	for activeFlagsRows.Next() {
-		var flagName string
-		if err := activeFlagsRows.Scan(&flagName); err != nil {
-			return nil, err
-		}
-		activeFlags = append(activeFlags, flagName)
-	}
-
-	return activeFlags, nil
-}
-
 func (r *PgEnvironmentRepository) CreateEnvironment(env *entity.Environment) error {
 	_, err := r.db.Exec(`
 		INSERT INTO environment (name, public_key, project_id) VALUES ($1, $2, $3)

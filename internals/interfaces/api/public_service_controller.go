@@ -9,19 +9,19 @@ import (
 )
 
 type PublicServiceController struct {
-	environmentInteractor *usecase.EnvironmentInteractor
+	flagInteractor *usecase.FlagInteractor
 }
 
-func NewPublicServiceController(environmentService *usecase.EnvironmentInteractor) *PublicServiceController {
+func NewPublicServiceController(flagInteractor *usecase.FlagInteractor) *PublicServiceController {
 	return &PublicServiceController{
-		environmentService,
+		flagInteractor,
 	}
 }
 
 func (c *PublicServiceController) GetFlagsByPublicKey(w http.ResponseWriter, r *http.Request) {
 	publicKey := r.Context().Value(context_keys.PublicKeyKey).(string)
 
-	flags, err := c.environmentInteractor.GetEnvironmentFlagsByPublicKey(publicKey)
+	flags, err := c.flagInteractor.GetEnvironmentFlagsByPublicKey(publicKey)
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

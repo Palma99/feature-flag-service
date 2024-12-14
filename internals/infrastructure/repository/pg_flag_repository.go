@@ -79,3 +79,27 @@ func (r *PgFlagRepository) DeleteFlag(flagId int) error {
 	_, err := r.db.Exec(`DELETE FROM flag WHERE id = $1`, flagId)
 	return err
 }
+
+func (r *PgFlagRepository) GetEnvironmentActiveFlagsByPublicKey(key string) ([]string, error) {
+	activeFlagsRows, err := r.db.Query(`
+		select f."name" from environment e 
+		left join flag_environment fe on e.id = fe.environment
+		left join flag f on fe.flag = f.id
+		where e.public_key = $1 and fe.enabled = true;
+	`, key)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var activeFlags []string = []string{}
+	for activeFlagsRows.Next() {
+		var flagName string
+		if err := activeFlagsRows.Scan(&flagName); err != nil {
+			return nil, err
+		}
+		activeFlags = append(activeFlags, flagName)
+	}
+
+	return activeFlags, nil
+}

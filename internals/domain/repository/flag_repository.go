@@ -7,4 +7,5 @@ type FlagRepository interface {
 	UpdateFlagEnvironment(environmentId int, flag []entity.Flag) error
 	GetProjectFlags(projectId int64) ([]entity.FlagWithoutEnabled, error)
 	DeleteFlag(flagId int) error
+	GetEnvironmentActiveFlagsByPublicKey(publicKey string) ([]string, error)
 }

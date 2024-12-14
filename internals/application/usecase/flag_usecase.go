@@ -98,3 +98,13 @@ func (i *FlagInteractor) DeleteFlag(userId, flagId int) error {
 
 	return nil
 }
+
+func (i *FlagInteractor) GetEnvironmentFlagsByPublicKey(key string) ([]string, error) {
+	activeFlagsNames, err := i.flagRepository.GetEnvironmentActiveFlagsByPublicKey(key)
+	if err != nil {
+		fmt.Println(err)
+		return nil, errors.New("cannot get active environment flags")
+	}
+
+	return activeFlagsNames, nil
+}

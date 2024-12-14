@@ -67,7 +67,7 @@ func main() {
 	flagInteractor := usecase.NewFlagInteractor(flagRepository, environmentRepository, keyService, projectRepository)
 	flagController := interfaces.NewApiFlagController(flagInteractor)
 
-	publicServiceController := interfaces.NewPublicServiceController(environmentInteractor)
+	publicServiceController := interfaces.NewPublicServiceController(flagInteractor)
 
 	r := chi.NewRouter()
 	r.Use(cors.Handler(cors.Options{

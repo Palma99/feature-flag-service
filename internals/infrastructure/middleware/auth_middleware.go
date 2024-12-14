@@ -35,7 +35,7 @@ func CheckAuthMiddleware(jwtService *services.JWTService) func(http.Handler) htt
 func CheckPublicKeyAuthMiddleware(keyService *services.KeyService) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			publicKey := r.Header.Get("X-Public-Key")
+			publicKey := r.URL.Query().Get("public_key")
 
 			if publicKey == "" {
 				w.WriteHeader(http.StatusUnauthorized)

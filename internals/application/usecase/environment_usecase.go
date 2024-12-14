@@ -71,16 +71,6 @@ func (i *EnvironmentInteractor) CreateEnvironment(envName string, projectId int6
 	return nil
 }
 
-func (i *EnvironmentInteractor) GetEnvironmentFlagsByPublicKey(key string) ([]string, error) {
-	activeFlagsNames, err := i.environmentRepository.GetEnvironmentActiveFlagsByPublicKey(key)
-	if err != nil {
-		fmt.Println(err)
-		return nil, errors.New("cannot get active environment flags")
-	}
-
-	return activeFlagsNames, nil
-}
-
 func (i *EnvironmentInteractor) GetEnvironmentDetails(userId int, environmentId int64) (*entity.EnvironmentWithFlags, error) {
 
 	environmentDetails, err := i.environmentRepository.GetEnvironmentDetails(environmentId)
