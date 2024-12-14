@@ -38,3 +38,7 @@ func (pm *ProjectWithMembers) HasMember(userId int) bool {
 	}
 	return false
 }
+
+func (pm *ProjectWithMembers) CanUserDeleteFlag(userId int) bool {
+	return pm.OwnerId == userId
+}

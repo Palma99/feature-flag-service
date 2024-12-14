@@ -17,22 +17,28 @@ func NewPgEnvironmentRepository(db *sql.DB) *PgEnvironmentRepository {
 	}
 }
 
-func (r *PgEnvironmentRepository) GetEnvironmentByPublicKey(key string) (*entity.Environment, error) {
-	envRow := r.db.QueryRow(`
-		SELECT id, name FROM environment WHERE public_key = $1
+func (r *PgEnvironmentRepository) GetEnvironmentActiveFlagsByPublicKey(key string) ([]string, error) {
+	activeFlagsRows, err := r.db.Query(`
+		select f."name" from environment e 
+		left join flag_environment fe on e.id = fe.environment
+		left join flag f on fe.flag = f.id
+		where e.public_key = $1 and fe.enabled = true;
 	`, key)
 
-	if envRow.Err() != nil {
-		return nil, envRow.Err()
-	}
-
-	env := entity.Environment{}
-
-	if err := envRow.Scan(&env.ID, &env.Name); err != nil {
+	if err != nil {
 		return nil, err
 	}
 
-	return &env, nil
+	var activeFlags []string = []string{}
+	for activeFlagsRows.Next() {
+		var flagName string
+		if err := activeFlagsRows.Scan(&flagName); err != nil {
+			return nil, err
+		}
+		activeFlags = append(activeFlags, flagName)
+	}
+
+	return activeFlags, nil
 }
 
 func (r *PgEnvironmentRepository) CreateEnvironment(env *entity.Environment) error {
@@ -146,22 +152,4 @@ func (r *PgEnvironmentRepository) GetEnvironmentDetails(environmentId int64) (*e
 	}
 
 	return env, nil
-}
-
-func (r *PgEnvironmentRepository) GetEnvironmentBySecretKey(key string) (*entity.Environment, error) {
-	envRow := r.db.QueryRow(`
-		SELECT id, name FROM environment WHERE private_key = $1
-	`, key)
-
-	if envRow.Err() != nil {
-		return nil, envRow.Err()
-	}
-
-	env := entity.Environment{}
-
-	if err := envRow.Scan(&env.ID, &env.Name); err != nil {
-		return nil, err
-	}
-
-	return &env, nil
 }

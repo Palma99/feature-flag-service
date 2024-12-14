@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/Palma99/feature-flag-service/internals/application/services"
 	domain "github.com/Palma99/feature-flag-service/internals/domain/entity"
@@ -77,4 +78,23 @@ func (i *FlagInteractor) GetProjectFlags(userId int, projectId int64) ([]domain.
 	}
 
 	return flags, nil
+}
+
+func (i *FlagInteractor) DeleteFlag(userId, flagId int) error {
+	projectWithMembers, err := i.projectRepository.GetProjectDetailsByFlagId(flagId)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	if !projectWithMembers.CanUserDeleteFlag(userId) {
+		return errors.New("not allowed")
+	}
+
+	err = i.flagRepository.DeleteFlag(flagId)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

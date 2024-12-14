@@ -1,16 +1,14 @@
 package main
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/Palma99/feature-flag-service/config"
 	"github.com/Palma99/feature-flag-service/internals/application/services"
 	usecase "github.com/Palma99/feature-flag-service/internals/application/usecase"
-	context_keys "github.com/Palma99/feature-flag-service/internals/infrastructure/context"
+	app_middleware "github.com/Palma99/feature-flag-service/internals/infrastructure/middleware"
 	infrastructure "github.com/Palma99/feature-flag-service/internals/infrastructure/repository"
 	interfaces "github.com/Palma99/feature-flag-service/internals/interfaces/api"
 	_ "github.com/lib/pq"
@@ -69,6 +67,8 @@ func main() {
 	flagInteractor := usecase.NewFlagInteractor(flagRepository, environmentRepository, keyService, projectRepository)
 	flagController := interfaces.NewApiFlagController(flagInteractor)
 
+	publicServiceController := interfaces.NewPublicServiceController(environmentInteractor)
+
 	r := chi.NewRouter()
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins: []string{"*"},
@@ -82,45 +82,8 @@ func main() {
 		r.Post("/login", authController.GetToken)
 	})
 
-	// func checkAuth(next http.Handler) http.Handler {
-	// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	// 		// create new context from `r` request context, and assign key `"user"`
-	// 		// to value of `"123"`
-	// 		ctx := context.WithValue(r.Context(), "user", "123")
-
-	// 		// call the next handler in the chain, passing the response writer and
-	// 		// the updated request object with the new context value.
-	// 		//
-	// 		// note: context.Context values are nested, so any previously set
-	// 		// values will be accessible as well, and the new `"user"` key
-	// 		// will be accessible from this point forward.
-	// 		next.ServeHTTP(w, r.WithContext(ctx))
-	// 	})
-	// }
-
 	r.Route("/project", func(r chi.Router) {
-		r.Use(func(next http.Handler) http.Handler {
-			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				// get token from auth header
-				bearerToken := r.Header.Get("Authorization")
-				parts := strings.Split(bearerToken, " ")
-				if len(parts) != 2 || parts[0] != "Bearer" {
-					w.WriteHeader(http.StatusUnauthorized)
-					return
-				}
-				token := parts[1]
-
-				// validate token
-				if payload, err := jwtService.ValidateToken(token); err != nil {
-					w.WriteHeader(http.StatusUnauthorized)
-					return
-				} else {
-
-					ctx := context.WithValue(r.Context(), context_keys.UserIDKey, payload.UserID)
-					next.ServeHTTP(w, r.WithContext(ctx))
-				}
-			})
-		})
+		r.Use(app_middleware.CheckAuthMiddleware(jwtService))
 
 		r.Post("/", projectController.CreateProject)
 		r.Get("/{id}", projectController.GetProject)
@@ -128,60 +91,25 @@ func main() {
 	})
 
 	r.Route("/environment", func(r chi.Router) {
-		r.Use(func(next http.Handler) http.Handler {
-			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				// get token from auth header
-				bearerToken := r.Header.Get("Authorization")
-				parts := strings.Split(bearerToken, " ")
-				if len(parts) != 2 || parts[0] != "Bearer" {
-					w.WriteHeader(http.StatusUnauthorized)
-					return
-				}
-				token := parts[1]
-
-				// validate token
-				if payload, err := jwtService.ValidateToken(token); err != nil {
-					w.WriteHeader(http.StatusUnauthorized)
-					return
-				} else {
-
-					ctx := context.WithValue(r.Context(), context_keys.UserIDKey, payload.UserID)
-					next.ServeHTTP(w, r.WithContext(ctx))
-				}
-			})
-		})
+		r.Use(app_middleware.CheckAuthMiddleware(jwtService))
 
 		r.Get("/{id}", environmentController.GetEnvironment)
 		r.Post("/", environmentController.CreateEnvironment)
 	})
 
 	r.Route("/flag", func(r chi.Router) {
-		r.Use(func(next http.Handler) http.Handler {
-			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				// get token from auth header
-				bearerToken := r.Header.Get("Authorization")
-				parts := strings.Split(bearerToken, " ")
-				if len(parts) != 2 || parts[0] != "Bearer" {
-					w.WriteHeader(http.StatusUnauthorized)
-					return
-				}
-				token := parts[1]
-
-				// validate token
-				if payload, err := jwtService.ValidateToken(token); err != nil {
-					w.WriteHeader(http.StatusUnauthorized)
-					return
-				} else {
-
-					ctx := context.WithValue(r.Context(), context_keys.UserIDKey, payload.UserID)
-					next.ServeHTTP(w, r.WithContext(ctx))
-				}
-			})
-		})
+		r.Use(app_middleware.CheckAuthMiddleware(jwtService))
 
 		r.Post("/", flagController.CreateFlag)
+		r.Delete("/{id}", flagController.DeleteFlag)
 		r.Put("/environment/{id}", flagController.UpdateFlagEnvironment)
 		r.Get("/project/{id}", flagController.GetProjectFlags)
+	})
+
+	r.Route("/public/v1", func(r chi.Router) {
+		r.Use(app_middleware.CheckPublicKeyAuthMiddleware(keyService))
+
+		r.Get("/flags", publicServiceController.GetFlagsByPublicKey)
 	})
 
 	fmt.Println("Server started on http://localhost:3000")

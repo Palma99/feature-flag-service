@@ -74,3 +74,8 @@ func (r *PgFlagRepository) CreateFlag(flag *domain.Flag) error {
 
 	return nil
 }
+
+func (r *PgFlagRepository) DeleteFlag(flagId int) error {
+	_, err := r.db.Exec(`DELETE FROM flag WHERE id = $1`, flagId)
+	return err
+}

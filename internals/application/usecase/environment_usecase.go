@@ -71,12 +71,14 @@ func (i *EnvironmentInteractor) CreateEnvironment(envName string, projectId int6
 	return nil
 }
 
-func (i *EnvironmentInteractor) GetEnvironmentByKey(key string) (*entity.Environment, error) {
-	if !i.keyService.IsPublicKey(key) {
-		return nil, errors.New("secret key is not supported yet")
+func (i *EnvironmentInteractor) GetEnvironmentFlagsByPublicKey(key string) ([]string, error) {
+	activeFlagsNames, err := i.environmentRepository.GetEnvironmentActiveFlagsByPublicKey(key)
+	if err != nil {
+		fmt.Println(err)
+		return nil, errors.New("cannot get active environment flags")
 	}
 
-	return i.environmentRepository.GetEnvironmentByPublicKey(key)
+	return activeFlagsNames, nil
 }
 
 func (i *EnvironmentInteractor) GetEnvironmentDetails(userId int, environmentId int64) (*entity.EnvironmentWithFlags, error) {

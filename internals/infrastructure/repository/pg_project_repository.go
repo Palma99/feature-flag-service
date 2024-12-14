@@ -180,3 +180,19 @@ func (r *PgProjectRepository) GetProjectDetailsByEnvironmentId(environmentId int
 
 	return project, nil
 }
+
+func (r *PgProjectRepository) GetProjectDetailsByFlagId(flagId int) (*entity.ProjectWithMembers, error) {
+	row := r.db.QueryRow(`select project_id from flag f where f.id = $1`, flagId)
+
+	var projectId int64
+	if err := row.Scan(&projectId); err != nil {
+		return nil, err
+	}
+
+	project, err := r.GetProjectDetails(projectId)
+	if err != nil {
+		return nil, err
+	}
+
+	return project, nil
+}

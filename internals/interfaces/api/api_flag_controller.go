@@ -101,3 +101,23 @@ func (flagController *ApiFlagController) CreateFlag(w http.ResponseWriter, r *ht
 
 	w.WriteHeader(http.StatusCreated)
 }
+
+func (flagController *ApiFlagController) DeleteFlag(w http.ResponseWriter, r *http.Request) {
+	userId := r.Context().Value(context_keys.UserIDKey).(int)
+	flagId, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+	}
+
+	err = flagController.flagInteractor.DeleteFlag(userId, int(flagId))
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
