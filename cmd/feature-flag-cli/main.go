@@ -17,7 +17,7 @@ import (
 	"github.com/Palma99/feature-flag-service/internals/application/services"
 	usecase "github.com/Palma99/feature-flag-service/internals/application/usecase"
 	infrastructure "github.com/Palma99/feature-flag-service/internals/infrastructure/repository"
-	"github.com/Palma99/feature-flag-service/internals/interfaces"
+	interfaces "github.com/Palma99/feature-flag-service/internals/interfaces/cli"
 )
 
 var db *sql.DB
