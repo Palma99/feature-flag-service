@@ -1,20 +1,20 @@
-COMPOSE=docker compose --file ./docker/docker-compose.yml $(COMPOSE_OVERRIDE) -p feature-flag-service
+DC=docker compose --file ./docker/docker-compose.yml -p feature-flag-service
 
 .PHONY: up
 up:
-	$(COMPOSE) up $$ARG
+	$(DC) up
 
 .PHONY: down
 down:
-	$(COMPOSE) down $$ARG
+	$(DC) down
 
 .PHONY: dv
 dv:
-	$(COMPOSE) down -v
+	$(DC) down -v
 
 .PHONY: purge
 purge:
-	$(COMPOSE) down --rmi=all --volumes --remove-orphans
+	$(DC) down --rmi=all --volumes --remove-orphans
 
 new-migration:
 	touch ./migrations/$$(date +%s)_$(name).sql
