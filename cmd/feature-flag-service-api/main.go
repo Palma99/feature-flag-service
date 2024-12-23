@@ -80,6 +80,7 @@ func main() {
 
 	r.Route("/auth", func(r chi.Router) {
 		r.Post("/login", authController.GetToken)
+		r.Post("/register", authController.CreateUser)
 	})
 
 	r.Route("/project", func(r chi.Router) {

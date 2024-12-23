@@ -2,6 +2,7 @@ package api_controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/Palma99/feature-flag-service/internals/application/usecase"
@@ -17,10 +18,28 @@ func NewApiUserController(authInteractor *usecase.AuthInteractor) *ApiAuthContro
 	}
 }
 
-func (authController *ApiAuthController) CreateUser(userDTO usecase.CreateUserDTO) error {
-	err := authController.authInteractor.CreateUser(userDTO)
+func (authController *ApiAuthController) CreateUser(w http.ResponseWriter, r *http.Request) {
+	var signupDTO usecase.CreateUserDTO
 
-	return err
+	err := json.NewDecoder(r.Body).Decode(&signupDTO)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err = authController.authInteractor.CreateUser(signupDTO)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		jsonResponse := map[string]string{
+			"error": err.Error(),
+		}
+
+		json.NewEncoder(w).Encode(jsonResponse)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
 }
 
 func (authController *ApiAuthController) GetToken(w http.ResponseWriter, r *http.Request) {

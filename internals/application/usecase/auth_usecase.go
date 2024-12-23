@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/Palma99/feature-flag-service/internals/application/services"
 	entity "github.com/Palma99/feature-flag-service/internals/domain/entity"
@@ -9,9 +10,10 @@ import (
 )
 
 type CreateUserDTO struct {
-	Email    string
-	Nickname string
-	Password string
+	Email           string `json:"email"`
+	Nickname        string `json:"nickname"`
+	Password        string `json:"password"`
+	ConfirmPassword string `json:"confirmPassword"`
 }
 
 type UserLoginDTO struct {
@@ -38,6 +40,18 @@ func NewAuthInteractor(
 }
 
 func (u *AuthInteractor) CreateUser(createUserDTO CreateUserDTO) error {
+	if createUserDTO.Email == "" || createUserDTO.Nickname == "" || createUserDTO.Password == "" || createUserDTO.ConfirmPassword == "" {
+		return errors.New("email, nickname, password and confirm password are required")
+	}
+
+	if err := u.passwordService.CheckPasswordSecurity(createUserDTO.Password); err != nil {
+		return err
+	}
+
+	if createUserDTO.Password != createUserDTO.ConfirmPassword {
+		return errors.New("passwords do not match")
+	}
+
 	hashedPassword, err := u.passwordService.HashPassword(createUserDTO.Password)
 	if err != nil {
 		return err
@@ -46,7 +60,8 @@ func (u *AuthInteractor) CreateUser(createUserDTO CreateUserDTO) error {
 	foundUser, _ := u.userRepository.GetUserByEmail(createUserDTO.Email)
 
 	if foundUser != nil {
-		return errors.New("user already exists")
+		fmt.Println("User already exists")
+		return errors.New("an error occurred while creating user")
 	}
 
 	user := entity.User{
