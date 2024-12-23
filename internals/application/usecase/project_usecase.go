@@ -68,3 +68,13 @@ func (i *ProjectInteractor) GetProjectDetails(userId int, projectId int64) (*ent
 
 	return project, nil
 }
+
+func (i *ProjectInteractor) GetUserPermissionsOnThisProject(userId int, projectId int64) ([]string, error) {
+	projectWithMembers, err := i.projectRepository.GetProjectDetails(projectId)
+	if err != nil || !projectWithMembers.HasMember(userId) {
+		fmt.Println(err)
+		return nil, errors.New("project not found")
+	}
+
+	return projectWithMembers.GetUserPermissions(userId), nil
+}

@@ -38,17 +38,13 @@ func (i *EnvironmentInteractor) CreateEnvironment(envName string, projectId int6
 		return errors.New("error during creation of environment")
 	}
 
-	loggedUser := &entity.LoggedUser{
-		ID: userId,
-	}
-
 	project, err := i.projectRepository.GetProjectDetails(projectId)
 	if err != nil {
 		fmt.Println(err)
 		return errors.New("error during creation of environment")
 	}
 
-	if !loggedUser.CanCreateProjectEnvironment(*project) {
+	if !project.UserHasPermission(userId, entity.PermissionCreateProjectEnvironment) {
 		return errors.New("user does not have permission to create environment in this project")
 	}
 
@@ -58,8 +54,8 @@ func (i *EnvironmentInteractor) CreateEnvironment(envName string, projectId int6
 		ProjectID: projectId,
 	}
 
-	if err := project.CanCreateEnvironment(*environment); err != nil {
-		return err
+	if project.EnvironmentWithSameNameAlreadyExists(*environment) {
+		return errors.New("environment with same name already exists on this project")
 	}
 
 	err = i.environmentRepository.CreateEnvironment(environment)

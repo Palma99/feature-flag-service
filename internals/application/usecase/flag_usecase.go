@@ -36,6 +36,10 @@ func (i *FlagInteractor) CreateFlag(projectId int64, userId int, flagName string
 		return errors.New("user is not allowed to create this flag")
 	}
 
+	if !projectWithMembers.UserHasPermission(userId, domain.PermissionCreateFlag) {
+		return errors.New("user is not allowed to create flags on this project")
+	}
+
 	if flagName == "" {
 		return errors.New("flag name is required")
 	}
@@ -87,8 +91,8 @@ func (i *FlagInteractor) DeleteFlag(userId, flagId int) error {
 		return err
 	}
 
-	if !projectWithMembers.CanUserDeleteFlag(userId) {
-		return errors.New("not allowed")
+	if !projectWithMembers.UserHasPermission(userId, domain.PermissionDeleteFlag) {
+		return errors.New("not allowed to delete flag on this project")
 	}
 
 	err = i.flagRepository.DeleteFlag(flagId)

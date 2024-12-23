@@ -14,19 +14,19 @@ services:
     networks:
       - postgres_network
 
-  backend:
-    build:
-      context: ../
-      dockerfile: ./docker/go/Dockerfile
+  # backend:
+  #   build:
+  #     context: ../
+  #     dockerfile: ./docker/go/Dockerfile
 
-    container_name: backend
+  #   container_name: backend
 
-    ports:
-      - "3000:3000"
-    depends_on:
-      - postgres
-    networks:
-      - postgres_network
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - postgres
+  #   networks:
+  #     - postgres_network
 
 
 volumes:

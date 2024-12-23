@@ -1,7 +1,5 @@
 package domain
 
-import "errors"
-
 type Project struct {
 	ID           int64         `json:"id"`
 	Name         string        `json:"name"`
@@ -16,13 +14,13 @@ func NewProject(name string, ownerId int) *Project {
 	}
 }
 
-func (p *Project) CanCreateEnvironment(env Environment) error {
+func (p *Project) EnvironmentWithSameNameAlreadyExists(env Environment) bool {
 	for _, e := range p.Environments {
 		if e.Name == env.Name {
-			return errors.New("environment with the same name already exists")
+			return true
 		}
 	}
-	return nil
+	return false
 }
 
 type ProjectWithMembers struct {
@@ -39,6 +37,32 @@ func (pm *ProjectWithMembers) HasMember(userId int) bool {
 	return false
 }
 
-func (pm *ProjectWithMembers) CanUserDeleteFlag(userId int) bool {
-	return pm.OwnerId == userId
+func (pm *ProjectWithMembers) GetUserPermissions(userId int) []string {
+	var permissions []string
+
+	if pm.OwnerId == userId {
+		permissions = append(permissions, PermissionCreateProjectEnvironment)
+		permissions = append(permissions, PermissionDeleteFlag)
+	}
+
+	for _, member := range pm.Members {
+		if member.ID == userId {
+			permissions = append(permissions, PermissionCreateFlag)
+			break
+		}
+	}
+
+	return permissions
+}
+
+func (p *ProjectWithMembers) UserHasPermission(userId int, permission string) bool {
+	userPermissions := p.GetUserPermissions(userId)
+
+	for _, userPermission := range userPermissions {
+		if userPermission == permission {
+			return true
+		}
+	}
+
+	return false
 }

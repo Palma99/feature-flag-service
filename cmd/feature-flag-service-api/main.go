@@ -88,6 +88,7 @@ func main() {
 		r.Post("/", projectController.CreateProject)
 		r.Get("/{id}", projectController.GetProject)
 		r.Get("/list", projectController.GetProjects)
+		r.Get("/{id}/permissions", projectController.GetUserPermissionsOnThisProject)
 	})
 
 	r.Route("/environment", func(r chi.Router) {
