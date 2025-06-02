@@ -54,23 +54,40 @@ func init() {
 func main() {
 	keyService := services.NewKeyService()
 	passwordService := services.NewPasswordService()
-	jwtService := services.NewJWTService(applicationConfig.JwtSecret)
+	jwtService := services.NewJWTService(
+		applicationConfig.JwtSecret,
+	)
 
 	userRepository := infrastructure.NewPgUserRepository(db)
-	authInteractor := usecase.NewAuthInteractor(userRepository, passwordService, jwtService)
+	authInteractor := usecase.NewAuthInteractor(
+		userRepository,
+		passwordService,
+		jwtService,
+	)
 	authController := interfaces.NewUserController(authInteractor)
 
 	projectRepository := infrastructure.NewPgProjectRepository(db)
-	projectInteractor := usecase.NewProjectInteractor(projectRepository, keyService)
+	projectInteractor := usecase.NewProjectInteractor(
+		projectRepository,
+		keyService,
+	)
 	projectController := interfaces.NewProjectController(projectInteractor)
 
 	environmentRepository := infrastructure.NewPgEnvironmentRepository(db)
-	environmentInteractor := usecase.NewEnvironmentInteractor(environmentRepository, projectRepository, keyService)
+	environmentInteractor := usecase.NewEnvironmentInteractor(
+		environmentRepository,
+		projectRepository,
+		keyService,
+	)
 	environmentController := interfaces.NewEnvironmentInteractor(environmentInteractor)
 
 	flagRepository := infrastructure.NewPgFlagRepository(db)
-	flagInteractor := usecase.NewFlagInteractor(flagRepository, environmentRepository, keyService, projectRepository)
-
+	flagInteractor := usecase.NewFlagInteractor(
+		flagRepository,
+		environmentRepository,
+		keyService,
+		projectRepository,
+	)
 	flagController := interfaces.NewFlagController(flagInteractor)
 
 	fmt.Println("Feature flag!")

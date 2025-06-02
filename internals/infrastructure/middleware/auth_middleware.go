@@ -12,7 +12,6 @@ import (
 func CheckAuthMiddleware(jwtService *services.JWTService) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// get token from auth header
 			bearerToken := r.Header.Get("Authorization")
 			parts := strings.Split(bearerToken, " ")
 			if len(parts) != 2 || parts[0] != "Bearer" {

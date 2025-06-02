@@ -40,7 +40,10 @@ func NewAuthInteractor(
 }
 
 func (u *AuthInteractor) CreateUser(createUserDTO CreateUserDTO) error {
-	if createUserDTO.Email == "" || createUserDTO.Nickname == "" || createUserDTO.Password == "" || createUserDTO.ConfirmPassword == "" {
+	if createUserDTO.Email == "" ||
+		createUserDTO.Nickname == "" ||
+		createUserDTO.Password == "" ||
+		createUserDTO.ConfirmPassword == "" {
 		return errors.New("email, nickname, password and confirm password are required")
 	}
 
