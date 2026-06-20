@@ -7,16 +7,20 @@ import (
 )
 
 type PostgresConfig struct {
-	Host     string
-	Port     string
-	User     string
-	Password string
-	Database string
+	Host           string
+	Port           string
+	User           string
+	Password       string
+	Database       string
+	SSLMode        string
+	ChannelBinding string
 }
 
 type Config struct {
-	DB        PostgresConfig
-	JwtSecret string
+	DB                PostgresConfig
+	Port              string
+	JwtSecret         string
+	CorsAllowedOrigin string
 }
 
 func LoadConfig() (*Config, error) {
@@ -27,12 +31,16 @@ func LoadConfig() (*Config, error) {
 
 	return &Config{
 		DB: PostgresConfig{
-			Host:     os.Getenv("DB_HOST"),
-			Port:     os.Getenv("DB_PORT"),
-			User:     os.Getenv("DB_USER"),
-			Password: os.Getenv("DB_PASSWORD"),
-			Database: os.Getenv("DB_NAME"),
+			Host:           os.Getenv("DB_HOST"),
+			Port:           os.Getenv("DB_PORT"),
+			User:           os.Getenv("DB_USER"),
+			Password:       os.Getenv("DB_PASSWORD"),
+			Database:       os.Getenv("DB_NAME"),
+			SSLMode:        os.Getenv("DB_SSLMODE"),
+			ChannelBinding: os.Getenv("DB_CHANNEL_BINDING"),
 		},
-		JwtSecret: os.Getenv("JWT_SECRET"),
+		Port:              os.Getenv("PORT"),
+		JwtSecret:         os.Getenv("JWT_SECRET"),
+		CorsAllowedOrigin: os.Getenv("CORS_ALLOWED_ORIGIN"),
 	}, nil
 }

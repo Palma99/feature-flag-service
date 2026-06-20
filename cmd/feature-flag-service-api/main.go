@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/Palma99/feature-flag-service/config"
 	"github.com/Palma99/feature-flag-service/internals/application/services"
@@ -31,12 +32,14 @@ func init() {
 
 	applicationConfig = config
 
-	dsn := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?sslmode=disable",
+	dsn := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?sslmode=%s&channel_binding=%s",
 		applicationConfig.DB.User,
 		applicationConfig.DB.Password,
 		applicationConfig.DB.Host,
 		applicationConfig.DB.Port,
 		applicationConfig.DB.Database,
+		applicationConfig.DB.SSLMode,
+		applicationConfig.DB.ChannelBinding,
 	)
 
 	dbConn, err := sql.Open("postgres", dsn)
@@ -69,9 +72,16 @@ func main() {
 
 	publicServiceController := interfaces.NewPublicServiceController(flagInteractor)
 
+	corsAllowedOrigins := []string{}
+	if applicationConfig.CorsAllowedOrigin != "" {
+		for _, origin := range strings.Split(applicationConfig.CorsAllowedOrigin, ",") {
+			corsAllowedOrigins = append(corsAllowedOrigins, strings.TrimSpace(origin))
+		}
+	}
+
 	r := chi.NewRouter()
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins: []string{"*"},
+		AllowedOrigins: corsAllowedOrigins,
 		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders: []string{"Link"},
@@ -114,6 +124,6 @@ func main() {
 		r.Get("/flags", publicServiceController.GetFlagsByPublicKey)
 	})
 
-	fmt.Println("Server started on http://localhost:3000")
-	http.ListenAndServe(":3000", r)
+	fmt.Println("Server started on port :" + applicationConfig.Port)
+	http.ListenAndServe(":"+applicationConfig.Port, r)
 }

@@ -6,13 +6,33 @@ import (
 	"os"
 	"strings"
 
+	"github.com/Palma99/feature-flag-service/config"
 	_ "github.com/lib/pq"
 )
 
 var db *sql.DB
 
+var applicationConfig *config.Config
+
 func init() {
-	dbConn, err := sql.Open("postgres", "postgresql://root:root@localhost:5432/local_feature_flag?sslmode=disable")
+	config, err := config.LoadConfig()
+	if err != nil {
+		panic(err)
+	}
+
+	applicationConfig = config
+
+	dsn := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?sslmode=%s&channel_binding=%s",
+		applicationConfig.DB.User,
+		applicationConfig.DB.Password,
+		applicationConfig.DB.Host,
+		applicationConfig.DB.Port,
+		applicationConfig.DB.Database,
+		applicationConfig.DB.SSLMode,
+		applicationConfig.DB.ChannelBinding,
+	)
+
+	dbConn, err := sql.Open("postgres", dsn)
 	if err != nil {
 		panic(err)
 	}
